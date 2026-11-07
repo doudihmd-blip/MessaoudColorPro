@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Messaoud Color Pro</title>
+<style>
+body{margin:0;background:#0f172a;color:#f8fafc;font-family:sans-serif}
+header{background:#020617;padding:12px;display:flex;justify-content:space-between;border-bottom:1px solid #334155}
+nav{display:flex;overflow-x:auto;background:#1e293b;padding:6px;gap:6px}
+nav button{background:none;color:#94a3b8;border:none;padding:8px 10px;border-radius:6px;white-space:nowrap;font-weight:700}
+nav button.active{background:#38bdf8;color:#020617}
+main{padding:12px;max-width:900px;margin:auto}
+.card{background:#1e293b;padding:12px;border-radius:8px;margin-bottom:10px;border:1px solid #334155}
+input,select{width:100%;padding:8px;border-radius:6px;border:1px solid #475569;background:#0f172a;color:#fff;margin:6px 0 10px;box-sizing:border-box}
+.btn{background:#38bdf8;color:#020617;border:none;padding:10px;border-radius:6px;font-weight:700;width:100%;margin-top:6px}
+table{width:100%;border-collapse:collapse;font-size:0.85rem}
+th,td{padding:6px;border-bottom:1px solid #334155}
+.sw{display:inline-block;width:20px;height:20px;border-radius:4px;border:1px solid #fff}
+.sec{display:none}.sec.active{display:block}
+</style>
+</head>
+<body>
+<header><b style="color:#38bdf8">Messaoud Color Pro</b><button onclick="tLang()">FR / عربي</button></header>
+<nav id="tabs">
+  <button class="active" onclick="tab(0)">1.الرئيسية</button><button onclick="tab(1)">2.المكتبة</button>
+  <button onclick="tab(2)">3.بحث</button><button onclick="tab(3)">4.مقارنة</button>
+  <button onclick="tab(4)">5.المختبر</button><button onclick="tab(5)">6.الملونات</button>
+  <button onclick="tab(6)">7.القواعد</button><button onclick="tab(7)">8.الأسعار</button>
+  <button onclick="tab(8)">9.السجل</button><button onclick="tab(9)">10.الإعدادات</button>
+</nav>
+<main>
+  <div class="sec active card" id="s0"><h3 id="wTitle">لوحة تحكم Messaoud Color Pro</h3><div id="stats"></div></div>
+  <div class="sec card" id="s1"><h3>مكتبة الألوان</h3><div id="libT"></div></div>
+  <div class="sec card" id="s2"><h3>بحث عن لون</h3><input id="qInp" oninput="sCol()" placeholder="RAL 1015..."><div id="qRes"></div></div>
+  <div class="sec card" id="s3"><h3>مقارنة الألوان</h3><select id="c1" onchange="cmp()"></select><select id="c2" onchange="cmp()"></select><div id="cBox" style="display:flex;gap:8px;height:80px"></div></div>
+  <div class="sec card" id="s4">
+    <h3>مختبر التركيبات والأسعار (DZD)</h3>
+    <select id="fCol"></select><select id="fBase"></select>
+    <input type="number" id="fVol" value="4.0" step="0.5"><input type="number" id="fMar" value="25">
+    <button class="btn" onclick="calc(0)">حساب الوصفة والسعر</button>
+    <button class="btn" style="background:#22c55e" onclick="calc(1)">حفظ في سجل التلوين</button>
+    <div id="fOut" style="margin-top:10px"></div>
+  </div>
+  <div class="sec card" id="s5"><h3>الملونات المائية</h3><div id="colT"></div></div>
+  <div class="sec card" id="s6"><h3>قواعد الدهان</h3><div id="baseT"></div></div>
+  <div class="sec card" id="s7"><h3>حساب الأسعار (DZD)</h3><p>يتم التحويل الآلي بين اللتر والكيلوغرام في قسم المختبر (5).</p></div>
+  <div class="sec card" id="s8"><h3>سجل عمليات التلوين</h3><div id="ordT"></div></div>
+  <div class="sec card" id="s9"><h3>الإعدادات والنسخ الاحتياطي</h3><button class="btn" onclick="bk()">نسخ احتياطي لقاعدة البيانات</button><div id="bkM"></div></div>
+</main>
+<script>
+let DB={colors:[],bases:[],colorants:[],orders:[],systems:[]},lang='ar';
+function tab(i){document.querySelectorAll('.sec').forEach((e,k)=>e.classList.toggle('active',k===i));document.querySelectorAll('#tabs button').forEach((b,k)=>b.classList.toggle('active',k===i));}
+function tLang(){lang=lang==='ar'?'fr':'ar';document.documentElement.dir=lang==='ar'?'rtl':'ltr';document.getElementById('wTitle').innerText=lang==='ar'?'لوحة تحكم Messaoud Color Pro':'Tableau de bord Messaoud Color Pro';render();}
+async function load(){const r=await fetch('/api/data');DB=await r.json();render();}
+function render(){
+  document.getElementById('stats').innerHTML='<p>الأنظمة: <b>'+DB.systems.length+'</b> | الألوان: <b>'+DB.colors.length+'</b> | الملونات: <b>'+DB.colorants.length+'</b> | العمليات: <b>'+DB.orders.length+'</b></p>';
+  document.getElementById('libT').innerHTML='<table><tr><th>اللون</th><th>النظام</th><th>الكود</th><th>الاسم</th><th>المصدر</th></tr>'+DB.colors.map(c=>'<tr><td><span class="sw" style="background:'+c.hex_value+'"></span></td><td>'+c.sys_name+'</td><td><b>'+c.code+'</b></td><td>'+(lang==='ar'?c.name_ar:c.name_fr)+'</td><td>'+c.data_source+'</td></tr>').join('')+'</table>';
+  const op=DB.colors.map(c=>'<option value="'+c.id+'">'+c.code+' - '+(lang==='ar'?c.name_ar:c.name_fr)+'</option>').join('');
+  ['fCol','c1','c2'].forEach(id=>document.getElementById(id).innerHTML=op);
+  document.getElementById('fBase').innerHTML=DB.bases.map(b=>'<option value="'+b.id+'">'+b.base_code+' ('+b.price_per_unit_dzd+' DZD/'+b.pricing_unit+')</option>').join('');
+  document.getElementById('colT').innerHTML='<table><tr><th>الكود</th><th>الاسم</th><th>الكثافة</th><th>السعر</th></tr>'+DB.colorants.map(c=>'<tr><td>'+c.code+'</td><td>'+c.trade_name+'</td><td>'+c.density_g_ml+'</td><td>'+c.price_dzd+' DZD/'+c.price_unit+'</td></tr>').join('')+'</table>';
+  document.getElementById('baseT').innerHTML='<table><tr><th>القاعدة</th><th>الكثافة</th><th>السعر</th></tr>'+DB.bases.map(b=>'<tr><td>'+b.base_code+'</td><td>'+b.density_g_ml+'</td><td>'+b.price_per_unit_dzd+' DZD/'+b.pricing_unit+'</td></tr>').join('')+'</table>';
+  document.getElementById('ordT').innerHTML='<table><tr><th>#</th><th>الحجم</th><th>التكلفة</th><th>البيع</th><th>الربح</th></tr>'+DB.orders.map(o=>'<tr><td>'+o.id+'</td><td>'+o.target_volume_l+'L</td><td>'+o.total_cost_dzd+'</td><td>'+o.selling_price_dzd+'</td><td>'+o.profit_margin_dzd+' DZD</td></tr>').join('')+'</table>';
+  cmp();
+}
+function sCol(){const q=document.getElementById('qInp').value.toLowerCase();document.getElementById('qRes').innerHTML=DB.colors.filter(c=>c.code.toLowerCase().includes(q)).map(c=>'<div class="card"><b>'+c.code+'</b> - '+c.name_ar+' ('+c.verification_status+')</div>').join('');}
+function cmp(){const x=DB.colors.find(a=>a.id==document.getElementById('c1').value)||{},y=DB.colors.find(a=>a.id==document.getElementById('c2').value)||{};document.getElementById('cBox').innerHTML='<div style="flex:1;background:'+x.hex_value+';padding:8px;color:#000;font-weight:700">'+x.code+'</div><div style="flex:1;background:'+y.hex_value+';padding:8px;color:#000;font-weight:700">'+y.code+'</div>';}
+async function calc(sv){
+  const cid=document.getElementById('fCol').value,bid=document.getElementById('fBase').value,v=document.getElementById('fVol').value,m=document.getElementById('fMar').value;
+  const r=await fetch('/api/calc?cid='+cid+'&bid='+bid+'&vol='+v+'&margin='+m+'&save='+sv);const d=await r.json();
+  if(!d.success){document.getElementById('fOut').innerHTML='<div class="card" style="color:#fca5a5">'+d.message+'</div>';return;}
+  const cb=d.cost_breakdown;
+  document.getElementById('fOut').innerHTML='<div class="card" style="border-color:#22c55e"><h4>'+d.color_code+' ('+d.target_volume_l+'L)</h4>'+d.colorants.map(c=>'<p><b>'+c.colorant_code+':</b> '+c.amount_ml+' ml | '+c.amount_g+' g ('+c.cost_dzd+' DZD)</p>').join('')+'<hr><p>القاعدة: '+cb.base_cost_dzd+' DZD | الملونات: '+cb.colorants_cost_dzd+' DZD</p><p style="color:#38bdf8"><b>الإجمالي: '+cb.total_cost_dzd+' DZD | البيع: '+cb.selling_price_dzd+' DZD (الربح: '+cb.profit_margin_dzd+' DZD)</b></p></div>';
+  if(sv)load();
+}
+async function bk(){const r=await fetch('/api/backup');const d=await r.json();document.getElementById('bkM').innerText='تم الحفظ: '+d.path;}
+load();
+</script></body></html>
