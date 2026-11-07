@@ -1,0 +1,9 @@
+{
+  "name": "Messaoud Color Pro",
+  "short_name": "ColorPro",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1976d2",
+  "description": "إدارة مكتبات ألوان الدهانات وتركيبات الملونات"
+}
